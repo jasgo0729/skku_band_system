@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useMe } from "@/components/AppShell";
+import { RequireMe, useMe } from "@/components/AppShell";
 import { MemberPicker } from "@/components/MemberPicker";
 import { WeekGrid, WeekNav, type CellPos, type GridBlock } from "@/components/WeekGrid";
 import { useRefresh, useWeek } from "@/components/useWeek";
@@ -17,7 +17,15 @@ type Status = { kind: "ok" } | { kind: "no" } | { kind: "class"; titles: string[
 
 const MIN_SUGGEST_SLOTS = 2; // 1시간 이상 모두 되는 시간만 추천
 
-export default function TeamPage() {
+export default function Page() {
+  return (
+    <RequireMe>
+      <TeamPage />
+    </RequireMe>
+  );
+}
+
+function TeamPage() {
   const { id } = useParams<{ id: string }>();
   const { me } = useMe();
   const router = useRouter();

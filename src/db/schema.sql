@@ -96,3 +96,27 @@ DROP TRIGGER IF EXISTS trg_sync_participant_times ON rehearsals;
 CREATE TRIGGER trg_sync_participant_times
   AFTER UPDATE OF start_at, end_at ON rehearsals
   FOR EACH ROW EXECUTE FUNCTION sync_participant_times();
+
+-- ───────── 뜨락(동아리 연습실) 대여 ─────────
+-- 합주 일정 기능과는 별개예요. 악의꽃 · 막무간애 · 모여락 세 동아리가 같이 쓰는 방 하나라서
+-- 어느 동아리든 시간이 겹치는 예약은 DB가 거부해요.
+CREATE TABLE IF NOT EXISTS ddrak_bookings (
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  club       text NOT NULL CHECK (club IN ('akui', 'makmu', 'moyeo')),
+  start_at   timestamptz NOT NULL,
+  end_at     timestamptz NOT NULL,
+  title      text CHECK (char_length(title) <= 60),
+  booked_by  text CHECK (char_length(booked_by) <= 30),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  CHECK (end_at > start_at)
+);
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ddrak_no_overlap') THEN
+    ALTER TABLE ddrak_bookings
+      ADD CONSTRAINT ddrak_no_overlap
+      EXCLUDE USING gist (tstzrange(start_at, end_at) WITH &&);
+  END IF;
+END $$;

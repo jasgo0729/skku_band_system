@@ -3,12 +3,20 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useMe } from "@/components/AppShell";
+import { RequireMe, useMe } from "@/components/AppShell";
 import { MemberPicker } from "@/components/MemberPicker";
 import { api, describeError } from "@/lib/client";
 import type { Team } from "@/lib/types";
 
-export default function TeamsPage() {
+export default function Page() {
+  return (
+    <RequireMe>
+      <TeamsPage />
+    </RequireMe>
+  );
+}
+
+function TeamsPage() {
   const { me } = useMe();
   const router = useRouter();
   const [teams, setTeams] = useState<Team[] | null>(null);

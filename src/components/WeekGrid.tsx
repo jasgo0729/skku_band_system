@@ -12,6 +12,8 @@ export type GridBlock = {
   end: number; // 끝 칸 번호(포함 안 함)
   title: string;
   sub?: string;
+  /** 세 번째 줄 (예: 예약한 사람) */
+  extra?: string;
   tone?: number; // 테이프 색 0~4
   lane?: number;
   lanes?: number;
@@ -19,6 +21,8 @@ export type GridBlock = {
   dim?: boolean;
   /** tape = 확정된 합주, class = 수업 (회색, 클릭 안 됨) */
   variant?: "tape" | "class";
+  /** 테이프 색을 tone 대신 직접 지정할 때 (예: 뜨락 동아리 색) */
+  className?: string;
   onClick?: () => void;
 };
 
@@ -172,16 +176,18 @@ export function WeekGrid(props: Props) {
                 const cls =
                   b.variant === "class"
                     ? "block block-class"
-                    : `block tape tape-${b.tone ?? 0} ${b.active ? "block-active" : ""} ${b.dim ? "block-dim" : ""}`;
+                    : `block tape ${b.className ?? `tape-${b.tone ?? 0}`} ${b.active ? "block-active" : ""} ${b.dim ? "block-dim" : ""}`;
                 return b.onClick && b.variant !== "class" && props.blocksInteractive !== false ? (
                   <button key={b.key} className={cls} style={style} onPointerDown={(e) => e.stopPropagation()} onClick={b.onClick}>
                     <span className="block-title">{b.title}</span>
                     {b.sub && <span className="block-sub">{b.sub}</span>}
+                    {b.extra && <span className="block-sub block-extra">{b.extra}</span>}
                   </button>
                 ) : (
                   <div key={b.key} className={`${cls} block-static`} style={style}>
                     <span className="block-title">{b.title}</span>
                     {b.sub && <span className="block-sub">{b.sub}</span>}
+                    {b.extra && <span className="block-sub block-extra">{b.extra}</span>}
                   </div>
                 );
               })}

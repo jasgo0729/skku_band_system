@@ -9,22 +9,42 @@ import type { Member } from "@/lib/types";
 type MeCtx = { me: Member; setMe: (m: Member | null) => void };
 const Ctx = createContext<MeCtx | null>(null);
 
-/** 이름을 고른 뒤에만 렌더되는 화면에서 쓰세요 */
+type ShellCtx = { me: Member | null; ready: boolean; setMe: (m: Member | null) => void };
+const Shell = createContext<ShellCtx>({ me: null, ready: false, setMe: () => {} });
+
+/** 이름을 고른 뒤에만 렌더되는 화면(RequireMe 안)에서 쓰세요 */
 export function useMe(): MeCtx {
   const v = useContext(Ctx);
-  if (!v) throw new Error("useMe는 AppShell 안에서만 쓸 수 있어요");
+  if (!v) throw new Error("useMe는 RequireMe 안에서만 쓸 수 있어요");
   return v;
+}
+
+/**
+ * 이름이 있어야 하는 화면을 감싸요. 이름이 없으면 이름 입력 화면을 보여줘요.
+ * (AppShell이 화면 자체는 항상 그리고, 이름 확인은 여기서 해요.
+ *  그래야 Next.js가 페이지를 미리 그려 보는 검사에서 페이지가 빠지지 않아요.)
+ */
+export function RequireMe({ children }: { children: ReactNode }) {
+  const { me, ready, setMe } = useContext(Shell);
+  if (!ready) return null; // 브라우저에 저장된 이름을 읽기 전
+  if (!me) return <NameGate onPick={setMe} />;
+  return <Ctx.Provider value={{ me, setMe }}>{children}</Ctx.Provider>;
 }
 
 const NAV = [
   { href: "/", label: "내 시간" },
   { href: "/teams", label: "팀" },
+  { href: "/ddrak", label: "뜨락 대여" },
 ];
+
+/** 이름 없이도 볼 수 있는 화면 (뜨락 대여는 합주 일정과 별개라 관리자 로그인만 써요) */
+const OPEN_PATHS = ["/ddrak"];
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [me, setMeState] = useState<Member | null>(null);
   const [ready, setReady] = useState(false);
   const pathname = usePathname();
+  const open = OPEN_PATHS.some((p) => pathname.startsWith(p));
 
   useEffect(() => {
     // localStorage는 브라우저에서만 읽을 수 있어서 마운트 후에 불러와요
@@ -44,7 +64,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <Link href="/" className="brand" aria-label="합주표 홈">
           <span className="tape tape-brand">합주표</span>
         </Link>
-        {me && (
+        {(me || open) && (
           <nav className="nav" aria-label="주요 메뉴">
             {NAV.map((n) => {
               const active = n.href === "/" ? pathname === "/" : pathname.startsWith(n.href);
@@ -64,7 +84,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         )}
       </header>
       <main className="main">
-        {!ready ? null : me ? <Ctx.Provider value={{ me, setMe }}>{children}</Ctx.Provider> : <NameGate onPick={setMe} />}
+        <Shell.Provider value={{ me, ready, setMe }}>{children}</Shell.Provider>
       </main>
     </>
   );

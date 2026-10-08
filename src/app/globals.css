@@ -31,6 +31,12 @@
   --tape-3: #a9d84f; --tape-ink-3: #1e2c05;
   --tape-4: #ffa24d; --tape-ink-4: #3a1e00;
 
+  /* 뜨락 동아리 색 */
+  --club-akui: #f28a2e; --club-ink-akui: #2e1400;
+  --club-makmu: #4c8df0; --club-ink-makmu: #031b38;
+  --club-moyeo: #f4c430; --club-ink-moyeo: #2b2300;
+  --room-free: #eef1f3;
+
   --row: 18px;
   --radius: 6px;
   color-scheme: light;
@@ -60,6 +66,7 @@
     --mine: #3fa86a;
     --class-bg: #3a4148;
     --class-bg-2: #353c42;
+    --room-free: #22272c;
     color-scheme: dark;
   }
 }
@@ -788,6 +795,107 @@ button {
   border-radius: 1px;
 }
 
+/* ───────── 뜨락 대여 ───────── */
+
+.club-akui { --t: var(--club-akui); --ti: var(--club-ink-akui); }
+.club-makmu { --t: var(--club-makmu); --ti: var(--club-ink-makmu); }
+.club-moyeo { --t: var(--club-moyeo); --ti: var(--club-ink-moyeo); }
+
+.cell-room {
+  background-color: var(--room-free);
+}
+.club-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.club-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.club-legend-item .muted {
+  font-weight: 500;
+}
+.club-dot {
+  display: inline-block;
+  flex: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  background: var(--t);
+}
+.club-chip {
+  display: inline-block;
+  padding: 1px 9px 2px;
+  border-radius: 4px;
+  background: var(--t);
+  color: var(--ti);
+  font-weight: 700;
+  font-size: 14px;
+}
+.banner-club {
+  background: var(--t);
+  color: var(--ti);
+}
+.club-pick {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.club-pick-item {
+  padding: 8px 4px;
+  border: 0;
+  background: var(--panel);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.club-pick-item + .club-pick-item {
+  border-left: 1px solid var(--line-strong);
+}
+.club-pick-on {
+  background: var(--t);
+  color: var(--ti);
+}
+.booking-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+.booking-item {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr);
+  column-gap: 8px;
+  padding: 7px 2px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+.booking-item .club-dot {
+  grid-row: span 2;
+  margin-top: 5px;
+}
+.booking-when {
+  font-weight: 700;
+  font-size: 14px;
+}
+.booking-what {
+  font-size: 13px;
+  color: var(--ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* ───────── 수업 시간표 ───────── */
 
 .class-list {
@@ -936,4 +1044,16 @@ button {
   .grid .cell-pending {
     animation: none;
   }
+}
+
+.grid .block-round {
+  clip-path: none;
+  filter: none;
+  border-radius: 8px;
+  padding: 5px 7px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
+}
+.block-extra {
+  font-weight: 600;
+  opacity: 0.9;
 }

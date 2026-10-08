@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useMe } from "@/components/AppShell";
+import { RequireMe, useMe } from "@/components/AppShell";
 import { ClassEditor, TimetablePanel } from "@/components/Timetable";
 import { WeekGrid, WeekNav, assignLanes, type CellPos, type GridBlock } from "@/components/WeekGrid";
 import { useRefresh, useWeek } from "@/components/useWeek";
@@ -22,7 +22,15 @@ function inRect(p: Paint, d: number, i: number) {
   );
 }
 
-export default function MyTimePage() {
+export default function Page() {
+  return (
+    <RequireMe>
+      <MyTimePage />
+    </RequireMe>
+  );
+}
+
+function MyTimePage() {
   const { me } = useMe();
   const week = useWeek();
   const { days, from, to } = week;
