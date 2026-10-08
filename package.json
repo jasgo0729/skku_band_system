@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "dev:local": "PGLITE_DIR=.pglite next dev",
-    "build": "next build",
+    "build": "node src/scripts/setup-db.mjs --build && next build",
     "start": "next start",
     "db:setup": "node src/scripts/setup-db.mjs",
     "test:db": "tsx src/scripts/test-db.ts"
@@ -14,7 +14,6 @@
     "@anthropic-ai/sdk": "^0.132.1",
     "@neondatabase/serverless": "^1.2.0",
     "drizzle-orm": "^0.45.3",
-    "electric-sql": "^0.12.1",
     "next": "16.4.0",
     "openai": "^7.30.1",
     "react": "19.3.0",
