@@ -96,7 +96,7 @@ function NameGate({ onPick }: { onPick: (m: Member) => void }) {
     <section className="gate">
       <h1 className="gate-title">이름을 알려주세요</h1>
       <p className="muted">
-        로그인은 없어요. 이름으로 구분하니까 매번 같은 이름을 쓰세요. 이미 등록된 이름을 고르면 그 사람으로 들어가요.
+        로그인은 없어요. 이름으로 구분하니까 매번 같은 이름을 쓰세요. (ex. 악의꽃 40G 김민재)
       </p>
       <form
         className="gate-form"
@@ -109,7 +109,7 @@ function NameGate({ onPick }: { onPick: (m: Member) => void }) {
           className="input"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="예: 김드럼"
+          placeholder="예: 악의꽃 40G 김민재"
           maxLength={30}
           aria-label="이름"
           autoFocus
@@ -119,18 +119,6 @@ function NameGate({ onPick }: { onPick: (m: Member) => void }) {
         </button>
       </form>
       {error && <p className="error">{error}</p>}
-      {members.length > 0 && (
-        <>
-          <h2 className="section-title">등록된 이름</h2>
-          <div className="chips">
-            {members.map((m) => (
-              <button key={m.id} className="chip" onClick={() => submit(m.name)} disabled={busy}>
-                {m.name}
-              </button>
-            ))}
-          </div>
-        </>
-      )}
     </section>
   );
 }
