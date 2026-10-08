@@ -4,17 +4,24 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:local": "PGLITE_DIR=.pglite next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "db:setup": "node src/scripts/setup-db.mjs",
+    "test:db": "tsx src/scripts/test-db.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.132.1",
     "@neondatabase/serverless": "^1.2.0",
     "drizzle-orm": "^0.45.3",
+    "electric-sql": "^0.12.1",
     "next": "16.4.0",
+    "openai": "^7.30.1",
     "react": "19.3.0",
     "react-dom": "19.3.0"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
     "@tailwindcss/turbopack": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -22,6 +29,7 @@
     "babel-plugin-react-compiler": "1.0.0",
     "drizzle-kit": "^0.31.11",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   }
 }
