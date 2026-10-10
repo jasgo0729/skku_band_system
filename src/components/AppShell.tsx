@@ -4,6 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { api, describeError, loadMe, saveMe } from "@/lib/client";
+import { CLUBS, clubName, type ClubSlug } from "@/lib/ddrak-clubs";
+import { composeName, SESSIONS } from "@/lib/member-name";
 import type { Member } from "@/lib/types";
 
 type MeCtx = { me: Member; setMe: (m: Member | null) => void };
@@ -91,21 +93,23 @@ export function AppShell({ children }: { children: ReactNode }) {
 }
 
 function NameGate({ onPick }: { onPick: (m: Member) => void }) {
-  const [members, setMembers] = useState<Member[]>([]);
+  const [club, setClub] = useState<ClubSlug | null>(null);
+  const [gen, setGen] = useState("");
+  const [session, setSession] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => {
-    api<Member[]>("/api/members").then(setMembers).catch(() => {});
-  }, []);
+  const clubLabel = club ? clubName(club) : "";
+  const ready = Boolean(club && gen && session && name.trim());
+  const full = ready ? composeName(clubLabel, gen, session!, name) : "";
 
-  async function submit(n: string) {
-    if (!n.trim()) return;
+  async function submit() {
+    if (!ready) return;
     setBusy(true);
     setError("");
     try {
-      onPick(await api<Member>("/api/members", { method: "POST", json: { name: n } }));
+      onPick(await api<Member>("/api/members", { method: "POST", json: { name: full } }));
     } catch (e) {
       setError(describeError(e));
       setBusy(false);
@@ -114,31 +118,84 @@ function NameGate({ onPick }: { onPick: (m: Member) => void }) {
 
   return (
     <section className="gate">
-      <h1 className="gate-title">이름을 알려주세요</h1>
-      <p className="muted">
-        로그인은 없어요. 이름으로 구분하니까 매번 같은 이름을 쓰세요. (ex. 악의꽃 40G 김민재)
-      </p>
+      <h1 className="gate-title">누구인지 알려주세요</h1>
+      <p className="muted">로그인은 없어요. 매번 같은 정보로 들어오면 같은 사람으로 이어져요.</p>
       <form
-        className="gate-form"
+        className="gate-fields"
         onSubmit={(e) => {
           e.preventDefault();
-          submit(name);
+          submit();
         }}
       >
-        <input
-          className="input"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="예: 악의꽃 40G 김민재"
-          maxLength={30}
-          aria-label="이름"
-          autoFocus
-        />
-        <button className="btn btn-primary" disabled={busy || !name.trim()}>
+        <div className="field">
+          <span className="field-label" id="gate-club">동아리</span>
+          <div className="club-pick" role="radiogroup" aria-labelledby="gate-club">
+            {CLUBS.map((c) => (
+              <button
+                key={c.slug}
+                type="button"
+                role="radio"
+                aria-checked={club === c.slug}
+                className={`club-pick-item ${club === c.slug ? `club-pick-on club-${c.slug}` : ""}`}
+                onClick={() => setClub(c.slug)}
+              >
+                {c.name}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <label className="field">
+          <span className="field-label">기수</span>
+          <input
+            className="input input-gen"
+            value={gen}
+            onChange={(e) => setGen(e.target.value.replace(/\D/g, "").slice(0, 3))}
+            inputMode="numeric"
+            placeholder="예: 40"
+            aria-label="기수"
+          />
+        </label>
+
+        <div className="field">
+          <span className="field-label" id="gate-session">세션</span>
+          <div className="session-pick" role="radiogroup" aria-labelledby="gate-session">
+            {SESSIONS.map((s) => (
+              <button
+                key={s.code}
+                type="button"
+                role="radio"
+                aria-checked={session === s.code}
+                className={`session-pick-item ${session === s.code ? "session-pick-on" : ""}`}
+                onClick={() => setSession(s.code)}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <label className="field">
+          <span className="field-label">이름</span>
+          <input className="input" value={name} onChange={(e) => setName(e.target.value)} maxLength={12} placeholder="예: 김민재" aria-label="이름" />
+        </label>
+
+        <p className="gate-preview" aria-live="polite">
+          {ready ? (
+            <>
+              <span className="muted">이 이름으로 들어가요</span>
+              <strong>{full}</strong>
+            </>
+          ) : (
+            <span className="muted">네 칸을 모두 채우면 이름이 만들어져요</span>
+          )}
+        </p>
+
+        {error && <p className="error">{error}</p>}
+        <button className="btn btn-primary btn-block" disabled={busy || !ready}>
           시작하기
         </button>
       </form>
-      {error && <p className="error">{error}</p>}
     </section>
   );
 }

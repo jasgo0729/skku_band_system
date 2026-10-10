@@ -396,6 +396,105 @@ button {
   flex-direction: column;
   gap: 10px;
 }
+/* 팀원 고르기 */
+.picker-selected {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  border-radius: var(--radius);
+  background: var(--wall);
+}
+.picker-count {
+  font-size: 13px;
+  font-weight: 700;
+}
+.chip-remove {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.chip-remove span {
+  opacity: 0.7;
+  font-size: 15px;
+  line-height: 1;
+}
+.chip-gen {
+  margin-right: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  opacity: 0.6;
+}
+.picker-tools {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 120px;
+  gap: 6px;
+}
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.fchip {
+  padding: 3px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-2);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.fchip-on {
+  border-color: var(--ink);
+  color: var(--ink);
+  background: var(--panel);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+.picker-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 340px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+.picker-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.picker-group-title {
+  font-size: 13px;
+  font-weight: 700;
+}
+.picker-add {
+  align-self: flex-start;
+  padding-left: 0;
+}
+.picker-addform {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius);
+}
+.picker-addrow {
+  display: grid;
+  grid-template-columns: 72px 96px minmax(0, 1fr);
+  gap: 6px;
+}
+.link-btn {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
 .tag {
   margin-left: 6px;
   padding: 1px 6px;
@@ -516,6 +615,59 @@ button {
   display: flex;
   flex-direction: column;
   gap: 14px;
+}
+.gate-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.input-gen {
+  max-width: 120px;
+}
+.session-pick {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.session-pick-item {
+  padding: 8px 2px;
+  border: 0;
+  background: var(--panel);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--ink-2);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.session-pick-item + .session-pick-item {
+  border-left: 1px solid var(--line-strong);
+}
+.session-pick-on {
+  background: var(--ink);
+  color: var(--wall);
+}
+.gate-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 52px;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  background: var(--panel);
+  border: 1px dashed var(--line-strong);
+}
+.gate-preview strong {
+  font-size: 18px;
+  letter-spacing: -0.01em;
+}
+.gate-preview .muted {
+  font-size: 13px;
+}
+.btn-block {
+  width: 100%;
+  min-height: 42px;
 }
 .gate-title {
   font-size: 30px;
