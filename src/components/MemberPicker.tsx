@@ -98,7 +98,7 @@ export function MemberPicker({ selected, onChange }: { selected: string[]; onCha
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="이름이나 기수로 찾기 (예: 김민, 40)"
+              placeholder="이름이나 기수로 찾기 (예: 김민재, 40)"
               aria-label={`${myClub} 멤버 검색`}
             />
             <select
