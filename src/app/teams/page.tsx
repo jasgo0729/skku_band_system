@@ -32,11 +32,23 @@ function TeamsPage() {
       .catch((e) => setError(describeError(e)));
   }, []);
 
+  // 이 화면은 다른 화면에 갔다 와도 입력 상태가 그대로 남아요(Next.js가 화면을 숨겨 두기만 해서).
+  // 그래서 새 팀 폼을 열거나 닫거나 팀을 만든 뒤에는 직접 처음 상태로 돌려요.
+  function resetForm(open: boolean) {
+    setCreating(open);
+    setName("");
+    setPicked([me.id]);
+    setError("");
+    setBusy(false);
+  }
+
   async function create() {
     setBusy(true);
     setError("");
     try {
       const team = await api<Team>("/api/teams", { method: "POST", json: { name, memberIds: picked } });
+      resetForm(false);
+      setTeams((ts) => (ts ? [...ts, team] : ts));
       router.push(`/teams/${team.id}`);
     } catch (e) {
       setError(describeError(e));
@@ -55,7 +67,7 @@ function TeamsPage() {
           <p className="muted">팀을 열면 팀원 전원의 가능 시간이 겹쳐 보여요. 거기서 합주를 확정하면 모두의 화면에 바로 반영돼요.</p>
         </div>
         {!creating && (
-          <button className="btn btn-primary" onClick={() => setCreating(true)}>
+          <button className="btn btn-primary" onClick={() => resetForm(true)}>
             팀 만들기
           </button>
         )}
@@ -77,7 +89,7 @@ function TeamsPage() {
             <button className="btn btn-primary" onClick={create} disabled={busy || !name.trim() || picked.length === 0}>
               팀 만들기
             </button>
-            <button className="btn btn-quiet" onClick={() => setCreating(false)}>
+            <button className="btn btn-quiet" onClick={() => resetForm(false)}>
               닫기
             </button>
           </div>
