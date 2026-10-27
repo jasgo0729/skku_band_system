@@ -36,7 +36,7 @@ export function RequireMe({ children }: { children: ReactNode }) {
 const NAV = [
   { href: "/", label: "내 시간" },
   { href: "/teams", label: "팀" },
-  { href: "/ddrak", label: "뜨락 대여" },
+  // { href: "/ddrak", label: "뜨락 대여" },
 ];
 
 /** 이름 없이도 볼 수 있는 화면 (뜨락 대여는 합주 일정과 별개라 관리자 로그인만 써요) */
