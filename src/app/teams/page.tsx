@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 import { RequireMe, useMe } from "@/components/AppShell";
 import { MemberPicker } from "@/components/MemberPicker";
 import { api, describeError } from "@/lib/client";
+import { clubName } from "@/lib/ddrak-clubs";
+import { clubSlugOf } from "@/lib/member-name";
 import type { Team } from "@/lib/types";
 
 export default function Page() {
@@ -26,11 +28,14 @@ function TeamsPage() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
+  // 내 이름("악의꽃 40G 김민재")에서 동아리를 읽어서, 그 동아리 팀만 불러와요
+  const myClub = clubSlugOf(me.name);
+
   useEffect(() => {
-    api<Team[]>("/api/teams")
+    api<Team[]>(myClub ? `/api/teams?club=${myClub}` : "/api/teams")
       .then(setTeams)
       .catch((e) => setError(describeError(e)));
-  }, []);
+  }, [myClub]);
 
   // 이 화면은 다른 화면에 갔다 와도 입력 상태가 그대로 남아요(Next.js가 화면을 숨겨 두기만 해서).
   // 그래서 새 팀 폼을 열거나 닫거나 팀을 만든 뒤에는 직접 처음 상태로 돌려요.
@@ -46,7 +51,7 @@ function TeamsPage() {
     setBusy(true);
     setError("");
     try {
-      const team = await api<Team>("/api/teams", { method: "POST", json: { name, memberIds: picked } });
+      const team = await api<Team>("/api/teams", { method: "POST", json: { name, memberIds: picked, club: myClub } });
       resetForm(false);
       setTeams((ts) => (ts ? [...ts, team] : ts));
       router.push(`/teams/${team.id}`);
@@ -57,14 +62,22 @@ function TeamsPage() {
   }
 
   const mine = teams?.filter((t) => t.members.some((m) => m.id === me.id)) ?? [];
-  const others = teams?.filter((t) => !t.members.some((m) => m.id === me.id)) ?? [];
+  // 동아리를 모르는 예전 형식 이름이면 다른 동아리 팀이 섞이지 않게 내가 속한 팀만 보여줘요
+  const others = myClub ? (teams?.filter((t) => !t.members.some((m) => m.id === me.id)) ?? []) : [];
 
   return (
     <div className="page page-narrow">
       <div className="page-head">
         <div>
           <h1 className="page-title">팀</h1>
-          <p className="muted">팀을 열면 팀원 전원의 가능 시간이 겹쳐 보여요. 거기서 합주를 확정하면 모두의 화면에 바로 반영돼요.</p>
+          <p className="muted">
+            {myClub ? `${clubName(myClub)} 팀만 보여요. ` : ""}팀을 열면 팀원 전원의 가능 시간이 겹쳐 보여요. 거기서 합주를 확정하면 모두의 화면에 바로 반영돼요.
+          </p>
+          {!myClub && (
+            <p className="warn">
+              내 이름이 &quot;동아리 기수세션 이름&quot; 형식이 아니라서 동아리를 알 수 없어요. 지금은 내가 속한 팀만 보여요. 오른쪽 위 이름을 눌러 다시 들어오면 우리 동아리 팀을 모두 볼 수 있어요.
+            </p>
+          )}
         </div>
         {!creating && (
           <button className="btn btn-primary" onClick={() => resetForm(true)}>
@@ -104,7 +117,7 @@ function TeamsPage() {
       ) : (
         <>
           <TeamList title="내 팀" teams={mine} empty="아직 속한 팀이 없어요." />
-          {others.length > 0 && <TeamList title="다른 팀" teams={others} />}
+          {others.length > 0 && <TeamList title={`${clubName(myClub!)}의 다른 팀`} teams={others} />}
         </>
       )}
     </div>

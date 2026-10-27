@@ -10,6 +10,7 @@ import { buildClassIndex } from "@/lib/classes";
 import { api, describeError } from "@/lib/client";
 import { addDays, minutesLabel, minutesToSlots, spanOnGrid, weekdayIndex, type Day } from "@/lib/time";
 import type { ClassBlock, DaySlots, Rehearsal, Team } from "@/lib/types";
+import { buildWeekFile, parseWeekFile, weekFileName, weekRangeLabel } from "@/lib/week-file";
 
 type Paint = { anchor: CellPos; cur: CellPos; add: boolean };
 
@@ -126,6 +127,42 @@ function MyTimePage() {
     }
   }
 
+  // ───── 이 주 일정 파일로 저장 · 불러오기 ─────
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  function downloadWeek() {
+    const file = buildWeekFile(me.name, days, avail);
+    const blob = new Blob([JSON.stringify(file, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = weekFileName(me.name, days[0]);
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  async function uploadWeek(file: File | undefined) {
+    if (fileRef.current) fileRef.current.value = "";
+    if (!file) return;
+    try {
+      if (file.size > 200_000) throw new Error("파일이 너무 커요. 합주표에서 내려받은 일정 파일을 올려 주세요.");
+      const parsed = parseWeekFile(await file.text());
+      const from = parsed.weekStart ? `${weekRangeLabel(parsed.weekStart)} 주` : "파일";
+      const other = parsed.name && parsed.name !== me.name ? `\n(${parsed.name}님의 파일이에요)` : "";
+      const hasAny = days.some((d) => (avail[d] ?? []).length > 0);
+      const msg = `${from} 일정을 ${weekRangeLabel(days[0])} 주에 요일별로 적용할까요?${other}${hasAny ? "\n지금 이 주에 칠한 시간은 파일 내용으로 바뀌어요." : ""}`;
+      if (!window.confirm(msg)) return;
+      const next: DaySlots = {};
+      for (const day of days) next[day] = parsed.byWeekday[weekdayIndex(day)];
+      setAvail(next);
+      await save(next);
+    } catch (e) {
+      setStatus({ kind: "error", text: e instanceof Error ? e.message : describeError(e) });
+    }
+  }
+
   const blocks: GridBlock[] = useMemo(() => {
     // 수업: 매주 같은 요일에 회색 블록으로
     const classBlocks: GridBlock[] = [];
@@ -180,7 +217,7 @@ function MyTimePage() {
 
       <div className="toolbar">
         <WeekNav label={week.label} onPrev={week.prev} onNext={week.next} onToday={week.thisWeek} />
-        <div className="toolbar-right">
+        <div className="toolbar-right" style={{ flexWrap: "wrap" }}>
           <span className={`save-status save-${status.kind}`} role="status">
             {status.kind === "saving" && "저장 중"}
             {status.kind === "saved" && "저장됨"}
@@ -189,6 +226,13 @@ function MyTimePage() {
           <button className="btn" onClick={copyLastWeek} disabled={!loaded}>
             지난주 시간 가져오기
           </button>
+          <button className="btn" onClick={downloadWeek} disabled={!loaded} title="이 주에 칠한 시간을 파일로 저장해요">
+            파일로 저장
+          </button>
+          <button className="btn" onClick={() => fileRef.current?.click()} disabled={!loaded} title="저장해 둔 일정 파일을 이 주에 적용해요">
+            파일 불러오기
+          </button>
+          <input ref={fileRef} type="file" accept=".json,application/json" hidden onChange={(e) => uploadWeek(e.target.files?.[0])} />
         </div>
       </div>
 

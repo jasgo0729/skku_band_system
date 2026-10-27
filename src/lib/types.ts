@@ -2,7 +2,7 @@ import type { Day } from "./time";
 
 export type Member = { id: string; name: string };
 
-export type Team = { id: string; name: string; members: Member[] };
+export type Team = { id: string; name: string; club: string | null; members: Member[] };
 
 /** 날짜 → 가능한 칸 번호들 */
 export type DaySlots = Record<Day, number[]>;

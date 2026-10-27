@@ -95,19 +95,21 @@ export async function replaceClasses(sql: Sql, memberId: string, classes: ClassB
 
 /* ───────── 팀 ───────── */
 
-function toTeam(r: { id: string; name: string; members: Member[] | string }): Team {
+function toTeam(r: { id: string; name: string; club: string | null; members: Member[] | string }): Team {
   const members = typeof r.members === "string" ? JSON.parse(r.members) : r.members;
-  return { id: r.id, name: r.name, members };
+  return { id: r.id, name: r.name, club: r.club ?? null, members };
 }
 
-export async function listTeams(sql: Sql): Promise<Team[]> {
+/** club을 주면 그 동아리 팀만 */
+export async function listTeams(sql: Sql, club: string | null = null): Promise<Team[]> {
   const rows = await sql`
-    SELECT t.id, t.name,
+    SELECT t.id, t.name, t.club,
            COALESCE(json_agg(json_build_object('id', m.id, 'name', m.name) ORDER BY m.name)
                     FILTER (WHERE m.id IS NOT NULL), '[]') AS members
       FROM teams t
       LEFT JOIN team_members tm ON tm.team_id = t.id
       LEFT JOIN members m ON m.id = tm.member_id
+     WHERE (${club}::text IS NULL OR t.club = ${club}::text)
      GROUP BY t.id
      ORDER BY t.name`;
   return rows.map(toTeam);
@@ -115,7 +117,7 @@ export async function listTeams(sql: Sql): Promise<Team[]> {
 
 export async function getTeam(sql: Sql, id: string): Promise<Team | null> {
   const rows = await sql`
-    SELECT t.id, t.name,
+    SELECT t.id, t.name, t.club,
            COALESCE(json_agg(json_build_object('id', m.id, 'name', m.name) ORDER BY m.name)
                     FILTER (WHERE m.id IS NOT NULL), '[]') AS members
       FROM teams t
@@ -126,9 +128,9 @@ export async function getTeam(sql: Sql, id: string): Promise<Team | null> {
   return rows[0] ? toTeam(rows[0]) : null;
 }
 
-export async function createTeam(sql: Sql, name: string, memberIds: string[]): Promise<string> {
+export async function createTeam(sql: Sql, name: string, memberIds: string[], club: string | null = null): Promise<string> {
   const [row] = await sql`
-    WITH t AS (INSERT INTO teams (name) VALUES (${name}) RETURNING id),
+    WITH t AS (INSERT INTO teams (name, club) VALUES (${name}, ${club}) RETURNING id),
          ins AS (
            INSERT INTO team_members (team_id, member_id)
            SELECT t.id, x::uuid FROM t, jsonb_array_elements_text(${json(memberIds)}::jsonb) x

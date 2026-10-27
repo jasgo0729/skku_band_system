@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS members (
 -- 합주 팀
 CREATE TABLE IF NOT EXISTS teams (
   id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  name       text NOT NULL UNIQUE CHECK (char_length(btrim(name)) BETWEEN 1 AND 40),
+  name       text NOT NULL CHECK (char_length(btrim(name)) BETWEEN 1 AND 40),
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
@@ -22,6 +22,23 @@ CREATE TABLE IF NOT EXISTS team_members (
   member_id uuid NOT NULL REFERENCES members(id) ON DELETE CASCADE,
   PRIMARY KEY (team_id, member_id)
 );
+
+-- 팀이 속한 동아리 (akui 악의꽃 / makmu 막무간애 / moyeo 모여락). 팀 목록은 내 동아리 팀만 보여줘요.
+ALTER TABLE teams ADD COLUMN IF NOT EXISTS club text CHECK (club IN ('akui', 'makmu', 'moyeo'));
+
+-- 동아리를 모르는 예전 팀은 팀원 이름("악의꽃 40G 김민재")에서 가장 많은 동아리로 채워요.
+UPDATE teams t
+   SET club = (
+     SELECT CASE substring(m.name from '^(악의꽃|막무간애|모여락) ')
+              WHEN '악의꽃' THEN 'akui' WHEN '막무간애' THEN 'makmu' WHEN '모여락' THEN 'moyeo' END
+       FROM team_members tm JOIN members m ON m.id = tm.member_id
+      WHERE tm.team_id = t.id AND m.name ~ '^(악의꽃|막무간애|모여락) '
+      GROUP BY 1 ORDER BY count(*) DESC, 1 LIMIT 1)
+ WHERE t.club IS NULL;
+
+-- 팀 이름 중복은 같은 동아리 안에서만 막아요 (악의꽃 "A팀"과 막무간애 "A팀"은 같이 있을 수 있어요).
+ALTER TABLE teams DROP CONSTRAINT IF EXISTS teams_name_key;
+CREATE UNIQUE INDEX IF NOT EXISTS teams_club_name_key ON teams (club, name);
 
 -- 사람별 · 날짜별 가능 시간.
 -- 팀마다 따로 입력하지 않고, 한 사람이 한 번 칠하면 모든 팀 화면에 쓰여요.
